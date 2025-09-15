@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebP в JPG</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff; /* Нежно-голубой */
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #4682b4; /* Стальной синий */
+        }
+        input[type="file"] {
+            margin: 20px 0;
+        }
+        button {
+            background-color: #4682b4;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #5a9bd4;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Конвертер WebP в JPG</h1>
+        <form id="uploadForm">
+            <input type="file" id="fileInput" name="file" accept=".webp" required>
+            <button type="submit">Конвертировать</button>
+        </form>
+        <p id="status"></p>
+        <a id="downloadLink" style="display: none;">Скачать файл</a>
+    </div>
+
+    <script>
+        const form = document.getElementById('uploadForm');
+        const fileInput = document.getElementById('fileInput');
+        const statusText = document.getElementById('status');
+        const downloadLink = document.getElementById('downloadLink');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const file = fileInput.files[0];
+            if (!file) {
+                statusText.textContent = 'Пожалуйста, выберите файл.';
+                return;
+            }
+
+            statusText.textContent = 'Конвертация...';
+            downloadLink.style.display = 'none';
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/convert', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = URL.createObjectURL(blob);
+                    downloadLink.href = url;
+                    downloadLink.download = 'converted.jpg';
+                    downloadLink.textContent = 'Скачать JPG файл';
+                    downloadLink.style.display = 'block';
+                    statusText.textContent = 'Готово!';
+                } else {
+                    const errorText = await response.text();
+                    statusText.textContent = 'Ошибка: ' + errorText;
+                }
+            } catch (error) {
+                statusText.textContent = 'Произошла ошибка сети.';
+            }
+        });
+    </script>
+</body>
+</html>
